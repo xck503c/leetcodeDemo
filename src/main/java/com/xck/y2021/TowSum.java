@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @Classname TowNumAdd
+ * @Classname TowSum
  *
  * leetcode 上两数之和：https://leetcode-cn.com/problems/two-sum
  *
@@ -26,11 +26,18 @@ import java.util.Map;
  * 输入：nums = [3,3], target = 6
  * 输出：[0,1]
  *
+ * 一共5种解法：
+ * 1. 暴力解法；
+ * 2. 重排序+双指针解法；
+ * 3. 双指针+二分解法；
+ * 4. Map解法；
+ * 5. 暴力解法优化版本；速度最快，最优方案
+ *
  * @Description TODO
  * @Date 2021/6/21 21:23
  * @Created by xck503c
  */
-public class TowNumAdd {
+public class TowSum {
 
     public static void main(String[] args) {
         int[] nums1 = new int[]{2,7,11,15};

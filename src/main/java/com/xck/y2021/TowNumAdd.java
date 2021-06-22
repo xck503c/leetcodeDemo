@@ -54,14 +54,22 @@ public class TowNumAdd {
         int[] nums5 = new int[]{-1, -2, -3, -4, -5};
         int target5 = -8;
         twoSum(nums5, target5);
+
+        int[] nums6 = new int[]{-1, 0, 2, 3, 8};
+        int target6 = -1;
+        twoSum(nums6, target6);
     }
 
     public static void twoSum(int[] nums, int target){
         int[] result1 = twoSum1(nums, target);
+        int[] result11 = twoSum11(nums, target);
         int[] result2 = twoSum2(nums, target);
+        int[] result3 = twoSum3(nums, target);
 
         print(result1);
+        print(result11);
         print(result2);
+        print(result3);
     }
 
     /**
@@ -73,6 +81,7 @@ public class TowNumAdd {
      * 否则，表示找到，根据x[start]，x[end]值去寻找索引，寻找的时候我们只需要遍历一次
      *
      * 用时4ms，31.77%；38.6 MB，45.39%
+     * 用时3ms，35.39%；38.3 MB，93.87%
      *
      * @param nums
      * @param target
@@ -86,13 +95,69 @@ public class TowNumAdd {
         int value1 = 0, value2 = 0;
 
         while (start < end) {
-            if (copyArr[start] + copyArr[end] > target) {
+            int sum = copyArr[start] + copyArr[end];
+            if (sum > target) {
                 end--;
-                continue;
+            }else if (sum < target) {
+                start++;
+            }else {
+                value1 = copyArr[start];
+                value2 = copyArr[end];
+                break;
+            }
+        }
+
+        if (start >= end){
+            return null;
+        }
+
+        int[] result = new int[2];
+        boolean firstFlag = false, secondFlag = false;
+        for (int i=0, count = 0; i<nums.length && count<2; i++){
+            if (!firstFlag && value1 == nums[i]){
+                result[count++] = i;
+                firstFlag = true;
+            }else if(!secondFlag && value2 == nums[i]){
+                result[count++] = i;
+                secondFlag = true;
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 解法1的优化1：之前采用的是遍历方法，现在改用二分查找：
+     * 1. 找到最小的一个end，使得x[start]+x[end]>target
+     * 2. 找到最大的一个start，使得x[start]+x[end]<target
+     * 3. 以此类推
+     *
+     * 用时3ms，35.97%；38.5 MB，72.53%
+     * 用时2ms，49.72%；38.5 MB，70.54%
+     *
+     * @param nums
+     * @param target
+     * @return
+     */
+    public static int[] twoSum11(int[] nums, int target){
+        int[] copyArr = new int[nums.length];
+        System.arraycopy(nums, 0, copyArr, 0, nums.length);
+        Arrays.sort(copyArr);
+        int start = 0, end = copyArr.length-1;
+        int value1 = 0, value2 = 0;
+
+        while (start < end) {
+            if (copyArr[start] + copyArr[end] > target) {
+                int index = binarySearch(copyArr, start+1, end-1
+                        , target - copyArr[start], true);
+                if (index == -1 || index == end) end--; //找不到
+                else end = index;
             }
             if (copyArr[start] + copyArr[end] < target) {
-                start++;
-                continue;
+                int index = binarySearch(copyArr, start+1, end-1
+                        , target - copyArr[end], false);
+                if (index == -1 || index == start) start++;
+                else start = index;
             }
             if (copyArr[start] + copyArr[end] == target) {
                 value1 = copyArr[start];
@@ -144,6 +209,79 @@ public class TowNumAdd {
             tmp.put(nums[i], i);
         }
         return null;
+    }
+
+    /**
+     * 解法3：是否有种不排序就可以的算法(思路惊艳)，看到下面，每次遍历都有2次判断，i+j和len-i-1+j两个
+     * 相比暴力破解多了少遍历一半，n^2==>n/2*n
+     *
+     * 简单来说：取头尾数字，j遍历判断，是否为目标数字
+     *
+     * 如果加上下面的排序代码，耗时高达3ms，说明耗时并不是最好的选择
+     * int[] copyArr = new int[nums.length];
+     * System.arraycopy(nums, 0, copyArr, 0, nums.length);
+     * Arrays.sort(copyArr);
+     *
+     * 用时0ms，100%；38.6 MB，56.72%
+     *
+     * 还可以再优化
+     * int j=i+1; j < nums.length-1; j++ 变成
+     * int j=i+1; j < nums.length-i; j++
+     *
+     * if((nums[nums.length-i-1] + nums[i]) == target){
+     *  return new int[]{i, nums.length-i-1};
+     * }
+     *
+     * 用时在0ms和1ms之间晃荡，优化反而下降
+     *
+     * @param nums
+     * @param target
+     * @return
+     */
+    public static int[] twoSum3(int[] nums, int target){
+        for (int i = 0; i < nums.length/2; i++) {
+            for (int j=i+1; j < nums.length-1; j++){
+                if (nums[i] + nums[j] == target){
+                    return new int[]{i, j};
+                }
+                if((nums[nums.length-i-1] + nums[j]) == target){
+                    return new int[]{j, nums.length-i-1};
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 找到一个符合条件(>=target，<=target)最接近的索引
+     *
+     * 例如：1, 6, 10, 11找9, low=0, high=3
+     * 1. 求出mid=1, 6<9, low = 2, high = 3
+     * 2. 求出mid=2, 10>9, low = 2, hight = 1, 停止查找
+     * 取low或者hight都可以
+     *
+     * @param nums 数组
+     * @param low 寻找起始点
+     * @param high 寻找的最终点
+     * @param target 需要对比的数字
+     * @param isLarge 是>=target还是<=target
+     * @return
+     */
+    public static int binarySearch(int[] nums, int low, int high, int target, boolean isLarge){
+        if (low >= high) return -1;
+
+        int mid = 0;
+        while (low < high){
+            mid = (low+high)/2;
+            if (nums[mid] > target) high = mid -1;
+            else if (nums[mid] < target) low = mid+1;
+            else return mid;
+        }
+        //未能找到，若是要找大于，则返回后一个，否则返回前一个
+        if (isLarge){
+            return nums[low] > target ? low : low+1;
+        }
+        return nums[low] < target ? low : low-1;
     }
 
     public static void print(int[] num){

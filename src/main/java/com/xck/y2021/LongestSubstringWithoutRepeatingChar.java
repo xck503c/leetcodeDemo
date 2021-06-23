@@ -55,10 +55,13 @@ public class LongestSubstringWithoutRepeatingChar {
         int result = lengthOfLongestSubstring1(s);
         System.out.println(result);
 
-        result = lengthOfLongestSubstring2(s);
+        result = lengthOfLongestSubstring12(s);
         System.out.println(result);
 
-        result = lengthOfLongestSubstring3(s);
+        result = lengthOfLongestSubstring13(s);
+        System.out.println(result);
+
+        result = lengthOfLongestSubstring14(s);
         System.out.println(result);
     }
 
@@ -122,7 +125,7 @@ public class LongestSubstringWithoutRepeatingChar {
      * @param s
      * @return
      */
-    public static int lengthOfLongestSubstring2(String s) {
+    public static int lengthOfLongestSubstring12(String s) {
         if (s.length() == 0) return 0;
 
         int max = 0;
@@ -158,24 +161,69 @@ public class LongestSubstringWithoutRepeatingChar {
      *
      * 耗时比优化1再缩短10倍
      *
+     * 想了想还有优化空间，可以把优化1的思路拿过来，区别就是要多一个判断
+     * Integer index = repeatMap.get(curChar);
+     * if (index != null && start <= index){}
+     * 而且也不需要清空
+     *
+     * 用时: 5ms，击败87.37%
+     * 内存消耗：38.6MB，击败50.70%
+     *
      * @param s
      * @return
      */
-    public static int lengthOfLongestSubstring3(String s) {
+    public static int lengthOfLongestSubstring13(String s) {
         if (s.length() == 0) return 0;
 
         int max = 0;
         int start = 0, end = 0;
+        HashMap<Character, Integer> repeatMap = new HashMap<Character, Integer>();
+        repeatMap.put(s.charAt(0), 0);
         for (int i=1; i < s.length(); ++i, ++end){
             char curChar = s.charAt(i);
-            for (int j = end; j >= start; --j){
-                if (s.charAt(j) == curChar){
-                    int count = end - start + 1;
-                    max = count > max ? count : max;
-                    start = j+1;
-                    break;
-                }
+            Integer index = repeatMap.get(curChar);
+            if (index != null && start <= index){ //只判断在范围内的
+                int count = end - start + 1;
+                max = count > max ? count : max;
+                start = index+1; //只要重置start就可以了，跳过重复字符
             }
+            repeatMap.put(curChar, i);
+        }
+        int count = end - start + 1;
+        return count > max ? count : max;
+    }
+
+    /**
+     * 解法1优化3：基于优化2优化，map替换为数组优化
+     *
+     * 换成数组映射，最长不过128
+     *
+     * 用时: 2ms，击败100%
+     * 内存消耗：38.6MB，击败47.88%%
+     *
+     * @param s
+     * @return
+     */
+    public static int lengthOfLongestSubstring14(String s) {
+        if (s.length() == 0) return 0;
+
+        int max = 0;
+        int start = 0, end = 0;
+        int[] repeatMap = new int[128];
+        for (int i = 0; i < repeatMap.length; i++) {
+            repeatMap[i] = -1;
+        }
+
+        repeatMap[s.charAt(0)] = 0;
+        for (int i=1; i < s.length(); ++i, ++end){
+            char curChar = s.charAt(i);
+            int index = repeatMap[curChar];
+            if (start <= index){
+                int count = end - start + 1;
+                max = count > max ? count : max;
+                start = index+1; //只要重置start就可以了，跳过重复字符
+            }
+            repeatMap[s.charAt(i)] = i;
         }
         int count = end - start + 1;
         return count > max ? count : max;

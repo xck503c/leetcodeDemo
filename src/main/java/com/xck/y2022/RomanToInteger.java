@@ -53,30 +53,26 @@ public class RomanToInteger {
     public static int romanToInt1(String s) {
         int number = 0;
         char[] arr = s.toCharArray();
-        for (int i = 0; i < arr.length; i++) {
-            Character c = arr[i];
-            int j = i;
-            Map<Character, Object> tmp = romanMap;
-            while (true) {
-                //查表
-                Map<Character, Object> map = (Map<Character, Object>) tmp.get(c);
-                //为null说明查不到c这个字符，需要回退j
-                if (map == null) {
-                    number += (Integer) tmp.get('A');
-                    i = --j;
-                    break;
-                }
-                //超过长度说明已经找完，可以直接跳出循环
-                if (j + 1 >= s.length()) {
-                    number += (Integer) map.get('A');
-                    return number;
-                }
-                c = arr[++j];
-                tmp = map;
+        Character c = arr[0];
+        int i = 0;
+        Map<Character, Object> tmp = romanMap;
+        while (true) {
+            //查表
+            Map<Character, Object> map = (Map<Character, Object>) tmp.get(c);
+            //为null说明查不到c这个字符，需要回退j
+            if (map == null) {
+                number += (Integer) tmp.get('A');
+                tmp = romanMap;
+                continue;
             }
-
+            //超过长度说明已经找完，可以直接跳出循环
+            if (i + 1 >= s.length()) {
+                number += (Integer) map.get('A');
+                return number;
+            }
+            c = arr[++i];
+            tmp = map; //递推
         }
-        return number;
     }
 
     //直接copy

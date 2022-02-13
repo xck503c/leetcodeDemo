@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * 数字转罗马数
  *
- * 我写的方法比较麻烦，还是两排数组的比较方便，或者全初始化
+ * DFA敏感词算法构造查找
  *
  * @author xuchengkun
  * @date 2022/02/12 09:01

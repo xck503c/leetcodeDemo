@@ -8,24 +8,23 @@ package com.xck.y2022;
  * <p>
  * 字符只有小写a～z
  *
- *
  * @author xuchengkun
  * @date 2022/02/19 20:47
  **/
 public class RegularExpressionMatching {
 
     public static void main(String[] args) {
-        System.out.println(isMatch2("ab", "a.*b") == true);
-        System.out.println(isMatch2("abb", "a.*bb") == true);
-        System.out.println(isMatch2("abbb", "ab*b") == true);
-        System.out.println(isMatch2("aa", "a") == false);
-        System.out.println(isMatch2("aa", "a*") == true);
-        System.out.println(isMatch2("ab", "a.b") == false);
-        System.out.println(isMatch2("aab", "c*a*b*") == true);
-        System.out.println(isMatch2("aab", "aab") == true);
-        System.out.println(isMatch2("aab", ".*c") == false);
-        System.out.println(isMatch2("aabdfdfs", ".*dfs") == true);
-        System.out.println(isMatch2("aabcbcbcaccbcaabc"
+        System.out.println(isMatch4("ab", "a.*b") == true);
+        System.out.println(isMatch4("abb", "a.*bb") == true);
+        System.out.println(isMatch4("abbb", "ab*b") == true);
+        System.out.println(isMatch4("aa", "a") == false);
+        System.out.println(isMatch4("aa", "a*") == true);
+        System.out.println(isMatch4("ab", "a.b") == false);
+        System.out.println(isMatch4("aab", "c*a*b*") == true);
+        System.out.println(isMatch4("aab", "aab") == true);
+        System.out.println(isMatch4("aab", ".*c") == false);
+        System.out.println(isMatch4("aabdfdfs", ".*dfs") == true);
+        System.out.println(isMatch4("aabcbcbcaccbcaabc"
                 , ".*a*aa*.*b*.c*.*a*") == true);
     }
 
@@ -177,5 +176,81 @@ public class RegularExpressionMatching {
         } else {
             return isMatch && isMatch2(s.substring(1), p.substring(1));
         }
+    }
+
+    //带备忘的自上而下的递归方式
+    public static boolean isMatch3(String s, String p) {
+        int[][] mem = new int[s.length()][p.length()];
+        return isMatch3Inner(s, p, 0, 0, mem);
+    }
+
+    public static boolean isMatch3Inner(String s, String p, int i, int j, int[][] mem) {
+
+        //提前返回
+        if (mem[i][j] != 0) {
+            return mem[i][j] == 1;
+        }
+
+        boolean result = false;
+
+        //如果模式p到头了，那就看s是否到头了
+        try {
+            if (p.length() == 0) {
+                result = s.length() == 0;
+                return result;
+            }
+
+            char p1 = p.charAt(0);
+            boolean isMatch = s.length() > 0
+                    && (s.charAt(0) == p1 || p1 == '.');
+
+            if (p.length() > 1 && p.charAt(1) == '*') {
+                //2个选择
+                //1. 0次匹配 2. 1次匹配
+                //此时s可能是空字符串，不过因为带*，所以也可能匹配
+                return result = (isMatch3Inner(s, p.substring(2), i, j + 2, mem)
+                        || (isMatch && isMatch3Inner(s.substring(1), p, i + 1, j, mem)));
+            } else {
+                return result = (isMatch && isMatch3Inner(s.substring(1), p.substring(1), i + 1, j + 1, mem));
+            }
+        } finally {
+            mem[i][j] = result ? 1 : 2;
+        }
+    }
+
+    //动态规划
+    public static boolean isMatch4(String s, String p) {
+        //0-表示空字符串
+        boolean[][] dp = new boolean[s.length() + 1][p.length() + 1];
+
+        char[] sArr = s.toCharArray();
+        char[] pArr = p.toCharArray();
+
+        dp[0][0] = true; //空字符串和空字符串匹配，可以匹配成功
+        //空字符p和s匹配，总是失败，所以dp[1...n][0]无需初始化
+
+        boolean result = false;
+        //s: 0 1... i
+        //p: 0 1... j
+        for (int i = 0; i <= sArr.length; i++) {
+            for (int j = 1; j <= pArr.length; j++) {
+                //若当前是星号
+                //1. 1次匹配：dp[i-1][j]是s[1...i-1]和p[1...j]是否能够匹配，若能够匹配，而且当前也可以匹配则表示匹配
+                //2. 0次匹配：dp[i][j-2]是s[1...i]和p[1...j-2]跳过星号
+                if (pArr[j - 1] == '*') {
+                    if (i == 0) {
+                        dp[i][j] = dp[i][j - 2]; //直接跳过星号看之前的结果
+                    } else {
+                        dp[i][j] = dp[i][j - 2] || ((pArr[j - 2] == '.' || pArr[j - 2] == sArr[i - 1]) && dp[i - 1][j]);
+                    }
+                } else {
+                    dp[i][j] = (i > 0 && (pArr[j - 1] == '.' || pArr[j - 1] == sArr[i - 1]) && dp[i - 1][j - 1]);
+                }
+
+                result = dp[i][j];
+            }
+        }
+
+        return result;
     }
 }

@@ -1,4 +1,4 @@
-package com.xck.y2022.m05;
+package com.xck.y2022.dynamic;
 
 import java.util.Stack;
 
@@ -9,7 +9,7 @@ import java.util.Stack;
  * s[i] 为 '(' 或 ')'
  *
  * @author xuchengkun
- * @date 2022/05/27 15:55
+ * @date 2022/05/27 15:55 一刷
  **/
 public class LongestValidParentheses {
 

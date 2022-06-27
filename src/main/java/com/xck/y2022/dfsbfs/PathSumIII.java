@@ -1,4 +1,4 @@
-package com.xck.y2022.dfs;
+package com.xck.y2022.dfsbfs;
 
 /**
  * 路径和III
